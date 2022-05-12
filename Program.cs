@@ -3,7 +3,7 @@ Console.WriteLine("Hello, World!");
 
 var discord = new DiscordClient(new DiscordConfiguration()
 {
-    Token = "My First Token",
+    Token = "ODM1Njc4MzM3MjIxMTMyMjg4.GZeg4k.rUwoqGB24ELSJFdzoG4hTFd-OwJa0vKAoKLfvs",
     TokenType = TokenType.Bot,
     Intents = DiscordIntents.AllUnprivileged     
 });
