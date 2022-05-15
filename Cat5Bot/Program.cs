@@ -1,6 +1,26 @@
 ﻿Log.Load();
 
-Log.All("Hello, World!");
+Log.All("[App] Hello, World!");
+
+lock (Cat5BotDB.I.Lock)
+{
+    Cat5BotDB.I.Load();
+}
+
+Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e) {
+    e.Cancel = true;
+    Console.WriteLine("Press \"X\" to close");
+};
+
+static void Save()
+{
+    Log.All("[App] Saving!");
+    lock (Cat5BotDB.I.Lock)
+    {
+        Cat5BotDB.I.Save();
+    }
+    Log.Save();
+}
 
 string token = File.ReadAllText(Directory.GetCurrentDirectory() + @"\token.secret");
 
@@ -15,10 +35,12 @@ discord.UseInteractivity();
 
 var commands = discord.UseCommandsNext(new CommandsNextConfiguration()
 {
-    StringPrefixes = new[] { "!" }
+    StringPrefixes = new[] { "!" },
+    EnableDms = false, // If making true, check where accessing member, will be null in dms
 });
 
-commands.RegisterCommands<TestModule>();
+commands.RegisterCommands<GeneralModule>();
+commands.RegisterCommands<NamesModule>();
 
 await discord.ConnectAsync();
 
@@ -28,9 +50,14 @@ while (true)
     if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.X)
         break;
 
-    if (loops % 100 == 0)
-        Log.Save();
+    if (loops % (Constants.SavePeriod * 10) == 0)
+    {
+        Save();
+    }
 
-    await Task.Delay(1000);
+    await Task.Delay(100);
     loops++;
 }
+
+Log.All("[App] Stopping!");
+Save();

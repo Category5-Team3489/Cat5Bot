@@ -40,6 +40,14 @@ public class Log
         I.IsDebug = isDebug;
     }
 
+    public static void Command(string commandName, string commandExecutor, string message = "")
+    {
+        if (!string.IsNullOrEmpty(message))
+            All($"Command \"{commandName}\" executed by \"{commandExecutor}\": {message}");
+        else
+            All($"Command \"{commandName}\" executed by \"{commandExecutor}\"");
+    }
+
     public static void All(string message)
     {
         lock (I.Lock)
@@ -72,7 +80,6 @@ public class Log
             {
                 I.data = data;
             }
-            I.Save(true);
         }
     }
 
@@ -89,6 +96,7 @@ public class Log
         if (data.Count >= MaxLogSize)
         {
             Save(true);
+            data.Clear();
         }
     }
 
@@ -98,6 +106,5 @@ public class Log
             File.WriteAllLines(LogDirPath + DateTime.Now.ToFileTime() + ".txt", data);
         else
             File.WriteAllLines(LatestLogPath, data);
-        data.Clear();
     }
 }
