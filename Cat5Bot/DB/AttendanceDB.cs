@@ -45,11 +45,14 @@ public class AttendanceDB : IDBSerializable<AttendanceDB>
 
     public AttendanceDB Serialize(DBWriter writer)
     {
+        DebugDB.Log(1, "Permissions Start");
         int length = attendance.Count;
+        DebugDB.Log(2, $"Length: {length}");
         writer.Put(length);
         foreach ((ulong discordId, MemberAttandance memberAttandance) in attendance)
         {
             writer.Put(discordId);
+            DebugDB.Log(3, $"Discord Id: {discordId}");
             memberAttandance.Serialize(writer);
         }
         return this;

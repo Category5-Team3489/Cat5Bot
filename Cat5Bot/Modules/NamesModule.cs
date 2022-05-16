@@ -8,7 +8,7 @@ public class NamesModule : BaseCommandModule
     [GroupCommand, Description("Links your full name to your attendance record.")]
     public async Task NameSelf(CommandContext ctx, [Description("Your full name")] params string[] fullName)
     {
-        ulong id = ctx.Member!.Id;
+        ulong id = ctx.User.Id;
         string name = string.Join(" ", fullName);
         if (string.IsNullOrWhiteSpace(name))
         {

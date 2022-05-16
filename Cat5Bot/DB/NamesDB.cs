@@ -70,11 +70,15 @@ public class NamesDB : IDBSerializable<NamesDB>
 
     public NamesDB Serialize(DBWriter writer)
     {
+        DebugDB.Log(1, "Names Start");
         int length = names.Count;
+        DebugDB.Log(2, $"Length: {length}");
         writer.Put(length);
         foreach ((ulong discordId, string name) in names)
         {
+            DebugDB.Log(3, $"Discord Id: {discordId}");
             writer.Put(discordId);
+            DebugDB.Log(3, $"Name: {name}");
             writer.Put(name);
         }
         return this;

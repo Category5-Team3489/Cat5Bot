@@ -33,10 +33,13 @@ public class MemberAttandance : IDBSerializable<MemberAttandance>
 
     public MemberAttandance Serialize(DBWriter writer)
     {
+        DebugDB.Log(3, "Member Attendance Start");
         int length = attendedEvents.Count;
+        DebugDB.Log(4, $"Length: {length}");
         writer.Put(length);
         foreach (ulong eventId in attendedEvents)
         {
+            DebugDB.Log(5, $"Event Id: {eventId}");
             writer.Put(eventId);
         }
         return this;

@@ -7,6 +7,8 @@ global using System.Threading.Tasks;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
 
+global using Microsoft.Extensions.Logging;
+
 global using DSharpPlus;
 global using DSharpPlus.CommandsNext;
 global using DSharpPlus.CommandsNext.Attributes;

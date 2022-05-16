@@ -7,7 +7,7 @@ public class GeneralModule : BaseCommandModule
     [Command("test"), Description("Test command")]
     public async Task Test(CommandContext ctx)
     {
-        Log.Command("Test", ctx.Member!.DisplayName);
+        Log.Command("Test", ctx.User.Username);
         await ctx.RespondAsync("Testing!");
     }
 }

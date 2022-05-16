@@ -33,7 +33,7 @@ public class Log
     private readonly static string LatestLogPath = LogDirPath + "latest.txt";
 
     private object Lock { get; set; } = new();
-    private List<string> data = new();
+    private readonly List<string> data = new();
 
     public static void SetMode(bool isDebug)
     {
@@ -70,24 +70,11 @@ public class Log
         }
     }
 
-    public static void Load()
-    {
-        Directory.CreateDirectory(LogDirPath);
-        if (File.Exists(LatestLogPath))
-        {
-            List<string> data = new(File.ReadAllLines(LatestLogPath));
-            lock (I.Lock)
-            {
-                I.data = data;
-            }
-        }
-    }
-
-    public static void Save()
+    public static void Save(bool archive)
     {
         lock (I.Lock)
         {
-            I.Save(false);
+            I.InternalSave(archive);
         }
     }
 
@@ -95,13 +82,14 @@ public class Log
     {
         if (data.Count >= MaxLogSize)
         {
-            Save(true);
+            InternalSave(true);
             data.Clear();
         }
     }
 
-    private void Save(bool archive)
+    private void InternalSave(bool archive)
     {
+        Directory.CreateDirectory(LogDirPath);
         if (archive)
             File.WriteAllLines(LogDirPath + DateTime.Now.ToFileTime() + ".txt", data);
         else

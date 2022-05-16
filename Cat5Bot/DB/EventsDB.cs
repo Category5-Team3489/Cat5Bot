@@ -33,11 +33,15 @@ public class EventsDB : IDBSerializable<EventsDB>
 
     public EventsDB Serialize(DBWriter writer)
     {
+        DebugDB.Log(1, "Events Start");
         int length = events.Count;
+        DebugDB.Log(2, $"Next Id: {length}");
+        DebugDB.Log(2, $"Length: {length}");
         writer.Put(nextId);
         writer.Put(length);
         foreach ((ulong eventId, ScheduledEvent scheduledEvent) in events)
         {
+            DebugDB.Log(3, $"Event Id: {eventId}");
             writer.Put(eventId);
             scheduledEvent.Serialize(writer);
         }

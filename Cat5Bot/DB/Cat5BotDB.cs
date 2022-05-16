@@ -61,10 +61,20 @@ public class Cat5BotDB
     {
         writer.Reset();
 
-        Names.Serialize(writer);
-        Permissions.Serialize(writer);
-        Events.Serialize(writer);
-        Attendance.Serialize(writer);
+        DebugDB.Log(0, "Start");
+        try
+        {
+            Names.Serialize(writer);
+            Permissions.Serialize(writer);
+            Events.Serialize(writer);
+            Attendance.Serialize(writer);
+        }
+        catch (Exception e)
+        {
+            Log.All("[DB] Error serializing!");
+            Console.WriteLine(e.ToString());
+        }
+        DebugDB.Save();
 
         byte[] data = writer.CopyData();
         File.WriteAllBytes(DBPath, data);

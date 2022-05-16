@@ -41,11 +41,15 @@ public class PermissionsDB : IDBSerializable<PermissionsDB>
 
     public PermissionsDB Serialize(DBWriter writer)
     {
+        DebugDB.Log(1, "Permissions Start");
         int length = permissions.Count;
+        DebugDB.Log(2, $"Length: {length}");
         writer.Put(length);
         foreach ((ulong discordId, byte permissionLevel) in permissions)
         {
+            DebugDB.Log(3, $"Discord Id: {discordId}");
             writer.Put(discordId);
+            DebugDB.Log(3, $"Permission Level: {permissionLevel}");
             writer.Put(permissionLevel);
         }
         return this;

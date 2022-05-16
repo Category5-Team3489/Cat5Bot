@@ -24,6 +24,11 @@ public class ScheduledEvent : IDBSerializable<ScheduledEvent>
 
     public ScheduledEvent Serialize(DBWriter writer)
     {
+        DebugDB.Log(3, "Scheduled Event Start");
+        DebugDB.Log(4, $"Name: {name}");
+        DebugDB.Log(4, $"Type: {type}");
+        DebugDB.Log(4, $"Start: {start.ToFileTimeUtc()}");
+        DebugDB.Log(4, $"Duration: {duration}");
         writer.Put(name);
         writer.Put(type);
         writer.Put(start.ToFileTimeUtc());

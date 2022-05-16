@@ -2,5 +2,5 @@
 
 public static class Constants
 {
-    public const int SavePeriod = 30;
+    public const int SavePeriod = 300; // seconds
 }

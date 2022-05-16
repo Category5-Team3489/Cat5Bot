@@ -1,6 +1,4 @@
-﻿Log.Load();
-
-Log.All("[App] Hello, World!");
+﻿Log.All("[App] Hello, World!");
 
 lock (Cat5BotDB.I.Lock)
 {
@@ -12,14 +10,17 @@ Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e) {
     Console.WriteLine("Press \"X\" to close");
 };
 
-static void Save()
+static void Save(bool archive)
 {
     Log.All("[App] Saving!");
+    if (archive)
+        Log.All("[App] Archiving!");
+
     lock (Cat5BotDB.I.Lock)
     {
         Cat5BotDB.I.Save();
     }
-    Log.Save();
+    Log.Save(archive);
 }
 
 string token = File.ReadAllText(Directory.GetCurrentDirectory() + @"\token.secret");
@@ -28,7 +29,8 @@ var discord = new DiscordClient(new DiscordConfiguration()
 {
     Token = token,
     TokenType = TokenType.Bot,
-    Intents = DiscordIntents.AllUnprivileged
+    Intents = DiscordIntents.AllUnprivileged,
+    MinimumLogLevel = LogLevel.Information
 });
 
 discord.UseInteractivity();
@@ -52,7 +54,7 @@ while (true)
 
     if (loops % (Constants.SavePeriod * 10) == 0)
     {
-        Save();
+        Save(false);
     }
 
     await Task.Delay(100);
@@ -60,4 +62,4 @@ while (true)
 }
 
 Log.All("[App] Stopping!");
-Save();
+Save(true);
