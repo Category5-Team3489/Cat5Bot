@@ -9,10 +9,10 @@ public class NamesModule : BaseCommandModule
     public async Task NameSelf(CommandContext ctx, [Description("Your full name")] params string[] fullName)
     {
         ulong id = ctx.User.Id;
-        string name = string.Join(" ", fullName);
+        string name = string.Join(' ', fullName);
         if (string.IsNullOrWhiteSpace(name))
         {
-            await ctx.RespondAsync($"Please supply a name.");
+            await ctx.RespondAsync($"Please supply your name.");
             return;
         }
         lock (Cat5BotDB.I.Lock)
