@@ -1,4 +1,4 @@
-namespace Cat5Bot;
+namespace Cat5BotDB;
 
 public static class Utils
 {

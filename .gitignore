@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 Cat5Bot/token.secret
+Cat5Bot/Cat5Bot.db
