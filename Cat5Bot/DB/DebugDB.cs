@@ -9,7 +9,7 @@ public static class DebugDB
     {
         for (int i = 0; i < indention; i++)
             sb.Append('\t');
-        sb.Append($"{sb}{message}\n");
+        sb.Append($"{message}\n");
     }
 
     public static void Save()

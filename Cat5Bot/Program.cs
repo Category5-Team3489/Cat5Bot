@@ -49,8 +49,14 @@ await discord.ConnectAsync();
 ulong loops = 0;
 while (true)
 {
-    if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.X)
-        break;
+    if (Console.KeyAvailable)
+    {
+        ConsoleKey key = Console.ReadKey().Key;
+        if (key == ConsoleKey.X)
+            break;
+        else if (key == ConsoleKey.S)
+            Save(false);
+    }
 
     if (loops % (Constants.SavePeriod * 10) == 0)
     {
