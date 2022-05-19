@@ -38,7 +38,7 @@ discord.UseInteractivity();
 var commands = discord.UseCommandsNext(new CommandsNextConfiguration()
 {
     StringPrefixes = new[] { "!" },
-    EnableDms = false, // If making true, check where accessing member, will be null in dms
+    EnableDms = true, // If making true, check where accessing member, will be null in dms
 });
 
 commands.RegisterCommands<GeneralModule>();

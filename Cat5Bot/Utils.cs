@@ -4,12 +4,14 @@ public static class Utils
 {
     public static string Hash(string str)
     {
-        SHA256Managed crypt = new SHA256Managed();
-        byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(str));
-        StringBuilder hash = new StringBuilder();
-        foreach (byte theByte in crypto)
+        StringBuilder hash = new();
+        using (SHA256 sha = SHA256.Create())
         {
-            hash.Append(theByte.ToString("x2"));
+            byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(str));
+            foreach (byte b in bytes)
+            {
+                hash.Append(b.ToString("x2"));
+            }
         }
         return hash.ToString();
     }
