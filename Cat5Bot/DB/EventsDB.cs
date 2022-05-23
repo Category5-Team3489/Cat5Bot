@@ -17,6 +17,22 @@ public class EventsDB : IDBSerializable<EventsDB>
         return id;
     }
 
+    public IEnumerable<ScheduledEvent> GetFuture()
+    {
+        DateTime now = DateTime.UtcNow;
+        return events.Select(e => e.Value)
+            .Where(e => e.start >= now)
+            .OrderBy(e => e.start);
+    }
+
+    public IEnumerable<ScheduledEvent> GetPast()
+    {
+        DateTime now = DateTime.UtcNow;
+        return events.Select(e => e.Value)
+            .Where(e => e.start < now)
+            .OrderBy(e => e.start);
+    }
+
     public EventsDB Deserialize(DBReader reader)
     {
         events.Clear();

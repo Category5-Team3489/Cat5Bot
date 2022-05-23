@@ -1,5 +1,7 @@
 ﻿Log.All("[App] Hello, World!");
 
+// add event archiving?, or more efficent search in eventsDB?
+
 lock (Cat5BotDB.I.Lock)
 {
     Cat5BotDB.I.Load();
@@ -43,6 +45,8 @@ var commands = discord.UseCommandsNext(new CommandsNextConfiguration()
 
 commands.RegisterCommands<GeneralModule>();
 commands.RegisterCommands<NamesModule>();
+commands.RegisterCommands<AttendanceModule>();
+commands.RegisterCommands<EventsModule>();
 
 await discord.ConnectAsync();
 
