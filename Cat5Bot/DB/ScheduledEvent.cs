@@ -6,12 +6,27 @@ using System.Threading.Tasks;
 
 namespace Cat5Bot.DB;
 
-public class ScheduledEvent : IDBSerializable<ScheduledEvent>
+public class ScheduledEvent : IDBSerializable<ScheduledEvent>, IDBCloneable<ScheduledEvent>
 {
     public string name = "";
     public string type = "";
     public DateTime start;
     public double duration;
+
+    public ScheduledEvent() { }
+
+    public ScheduledEvent(string name, string type, DateTime start, double duration)
+    {
+        this.name = name;
+        this.type = type;
+        this.start = start;
+        this.duration = duration;
+    }
+
+    public ScheduledEvent Clone()
+    {
+        return new ScheduledEvent(name, type, start, duration);
+    }
 
     public ScheduledEvent Deserialize(DBReader reader)
     {
@@ -34,5 +49,17 @@ public class ScheduledEvent : IDBSerializable<ScheduledEvent>
         writer.Put(start.ToFileTimeUtc());
         writer.Put(duration);
         return this;
+    }
+
+    public ScheduledEvent CloneAsLocal()
+    {
+        ScheduledEvent scheduledEvent = Clone();
+        scheduledEvent.start = start.ToLocalTime();
+        return scheduledEvent;
+    }
+
+    public string Summarize()
+    {
+        return $"{type} {start:M/d} at {start:h':'mmtt} for {TimeSpan.FromSeconds(duration):h':'mm}";
     }
 }

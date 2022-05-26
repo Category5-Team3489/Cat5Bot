@@ -50,6 +50,34 @@ commands.RegisterCommands<EventsModule>();
 
 await discord.ConnectAsync();
 
+await Task.Delay(5000);
+
+async Task SetStatus(string status)
+{
+    DiscordActivity activity = new(status);
+    await discord!.UpdateStatusAsync(activity);
+}
+
+async Task SetStatusToNextEvent()
+{
+    ScheduledEvent? scheduledEvent = null;
+    lock (Cat5BotDB.I.Lock)
+    {
+        if (scheduledEvent is not null)
+        {
+            scheduledEvent = Cat5BotDB.I.Events.GetFuture().FirstOrDefault()!.Clone();
+        }
+    }
+    if (scheduledEvent is not null)
+    {
+        await SetStatus(scheduledEvent.CloneAsLocal().Summarize());
+    }
+    else
+    {
+        await SetStatus("No future events scheduled!");
+    }
+}
+
 ulong loops = 0;
 while (true)
 {
@@ -60,11 +88,23 @@ while (true)
             break;
         else if (key == ConsoleKey.S)
             Save(false);
+        else if (key == ConsoleKey.A)
+        {
+            await SetStatus("Debug status!");
+            Log.All("[App] Debug set status!");
+        }
+        else if (key == ConsoleKey.P)
+        {
+            await SetStatusToNextEvent();
+            Log.All("[App] Debug set status to next event!");
+        }
     }
 
-    if (loops % (Constants.SavePeriod * 10) == 0)
+    if (loops % (Constants.TaskPeriod * 10) == 0)
     {
         Save(false);
+
+        await SetStatusToNextEvent();
     }
 
     await Task.Delay(100);

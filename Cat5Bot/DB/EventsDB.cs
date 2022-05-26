@@ -10,11 +10,27 @@ public class EventsDB : IDBSerializable<EventsDB>
         return events.TryGetValue(eventId, out scheduledEvent);
     }
 
+    public bool TryRemove(ulong eventId, out ScheduledEvent? scheduledEvent)
+    {
+        if (TryGet(eventId, out scheduledEvent))
+        {
+            return events.Remove(eventId);
+        }
+        return false;
+    }
+
     public ulong Add(ScheduledEvent scheduledEvent)
     {
         ulong id = nextId++;
         events.Add(id, scheduledEvent);
         return id;
+    }
+
+    public ScheduledEvent? GetClosest()
+    {
+        DateTime now = DateTime.UtcNow;
+        return events.Select(e => e.Value)
+            .MinBy(e => Math.Abs((now - e.start).TotalSeconds));
     }
 
     public IEnumerable<ScheduledEvent> GetFuture()
@@ -51,7 +67,7 @@ public class EventsDB : IDBSerializable<EventsDB>
     {
         DebugDB.Log(1, "Events Start");
         int length = events.Count;
-        DebugDB.Log(2, $"Next Id: {length}");
+        DebugDB.Log(2, $"Next Id: {nextId}");
         DebugDB.Log(2, $"Length: {length}");
         writer.Put(nextId);
         writer.Put(length);
