@@ -8,14 +8,21 @@ namespace Cat5Bot.DB;
 
 public class ScheduledEvent : IDBSerializable<ScheduledEvent>, IDBCloneable<ScheduledEvent>
 {
+    public ulong Id { get; private set; }
+
     public string name = "";
     public string type = "";
     public DateTime start;
-    public double duration;
+    public TimeSpan duration;
+
+    public void SetId(ulong id)
+    {
+        Id = id;
+    }
 
     public ScheduledEvent() { }
 
-    public ScheduledEvent(string name, string type, DateTime start, double duration)
+    public ScheduledEvent(string name, string type, DateTime start, TimeSpan duration)
     {
         this.name = name;
         this.type = type;
@@ -33,7 +40,7 @@ public class ScheduledEvent : IDBSerializable<ScheduledEvent>, IDBCloneable<Sche
         name = reader.GetString();
         type = reader.GetString();
         start = DateTime.FromFileTimeUtc(reader.GetLong());
-        duration = reader.GetDouble();
+        duration = TimeSpan.FromSeconds(reader.GetDouble());
         return this;
     }
 
@@ -42,12 +49,12 @@ public class ScheduledEvent : IDBSerializable<ScheduledEvent>, IDBCloneable<Sche
         DebugDB.Log(3, "Scheduled Event Start");
         DebugDB.Log(4, $"Name: {name}");
         DebugDB.Log(4, $"Type: {type}");
-        DebugDB.Log(4, $"Start: {start.ToFileTimeUtc()}");
-        DebugDB.Log(4, $"Duration: {duration}");
+        DebugDB.Log(4, $"Start: {start:M/d/yyyy} at {start:h':'mmtt}");
+        DebugDB.Log(4, $"Duration: {duration:h':'mm}");
         writer.Put(name);
         writer.Put(type);
         writer.Put(start.ToFileTimeUtc());
-        writer.Put(duration);
+        writer.Put(duration.TotalSeconds);
         return this;
     }
 
@@ -60,6 +67,6 @@ public class ScheduledEvent : IDBSerializable<ScheduledEvent>, IDBCloneable<Sche
 
     public string Summarize()
     {
-        return $"{type} {start:M/d} at {start:h':'mmtt} for {TimeSpan.FromSeconds(duration):h':'mm}";
+        return $"{type} {start:M/d} at {start:h':'mmtt} for {duration:h':'mm}";
     }
 }

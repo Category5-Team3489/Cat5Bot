@@ -22,6 +22,7 @@ public class EventsDB : IDBSerializable<EventsDB>
     public ulong Add(ScheduledEvent scheduledEvent)
     {
         ulong id = nextId++;
+        scheduledEvent.SetId(id);
         events.Add(id, scheduledEvent);
         return id;
     }
@@ -58,6 +59,7 @@ public class EventsDB : IDBSerializable<EventsDB>
         {
             ulong eventId = reader.GetULong();
             ScheduledEvent scheduledEvent = new ScheduledEvent().Deserialize(reader);
+            scheduledEvent.SetId(eventId);
             events.Add(eventId, scheduledEvent);
         }
         return this;

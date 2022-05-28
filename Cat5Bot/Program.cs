@@ -1,6 +1,10 @@
 ﻿Log.All("[App] Hello, World!");
 
-// add event archiving?, or more efficent search in eventsDB?
+// TODO add event archiving?, or more efficent search in eventsDB?
+
+// TODO add discriptions to commands and anything else
+
+// TODO deduplicate command cancellation code
 
 lock (Cat5BotDB.I.Lock)
 {
@@ -60,22 +64,16 @@ async Task SetStatus(string status)
 
 async Task SetStatusToNextEvent()
 {
-    ScheduledEvent? scheduledEvent = null;
+    string status = "No events scheduled!";
     lock (Cat5BotDB.I.Lock)
     {
+        ScheduledEvent? scheduledEvent = Cat5BotDB.I.Events.GetFuture().FirstOrDefault();
         if (scheduledEvent is not null)
         {
-            scheduledEvent = Cat5BotDB.I.Events.GetFuture().FirstOrDefault()!.Clone();
+            status = scheduledEvent.CloneAsLocal().Summarize();
         }
     }
-    if (scheduledEvent is not null)
-    {
-        await SetStatus(scheduledEvent.CloneAsLocal().Summarize());
-    }
-    else
-    {
-        await SetStatus("No future events scheduled!");
-    }
+    await SetStatus(status);
 }
 
 ulong loops = 0;
@@ -100,10 +98,13 @@ while (true)
         }
     }
 
-    if (loops % (Constants.TaskPeriod * 10) == 0)
+    if (loops % (Constants.SavePeriod * 10) == 0)
     {
         Save(false);
+    }
 
+    if (loops % (Constants.UpdateStatusPeriod * 10) == 0)
+    {
         await SetStatusToNextEvent();
     }
 

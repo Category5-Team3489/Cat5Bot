@@ -12,7 +12,7 @@ public class AttendanceDB : IDBSerializable<AttendanceDB>
     public void Set(ulong discordId, ulong eventId)
     {
         if (attendance.ContainsKey(discordId))
-            attendance[eventId].Set(eventId);
+            attendance[discordId].Set(eventId);
         else
         {
             MemberAttandance memberAttandance = new();
@@ -45,7 +45,7 @@ public class AttendanceDB : IDBSerializable<AttendanceDB>
 
     public AttendanceDB Serialize(DBWriter writer)
     {
-        DebugDB.Log(1, "Permissions Start");
+        DebugDB.Log(1, "Attendance Start");
         int length = attendance.Count;
         DebugDB.Log(2, $"Length: {length}");
         writer.Put(length);
