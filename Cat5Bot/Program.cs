@@ -6,6 +6,15 @@
 
 // TODO deduplicate command cancellation code
 
+// TODO dash for type
+// TODO Panels for bot responses?
+// TODO Select panel for events, based off day you give? get closest meetings within certain range
+// TODO Improve help panel and add descriptions that point to correct things, internal help for !s
+
+// TODO Hosting?
+// Use meta truso, with metaubuntu?
+// Have something that checks if the server is up every min and notifies if no response
+
 lock (Cat5BotDB.I.Lock)
 {
     Cat5BotDB.I.Load();
