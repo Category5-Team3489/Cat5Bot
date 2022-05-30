@@ -27,6 +27,12 @@ public class EventsDB : IDBSerializable<EventsDB>
         return id;
     }
 
+    public bool AnyOverlap(ScheduledEvent scheduledEvent)
+    {
+        return events.Select(e => e.Value)
+            .Any(e => e.start <= scheduledEvent.End && e.End >= scheduledEvent.start && e != scheduledEvent);
+    }
+
     public ScheduledEvent? GetClosest()
     {
         DateTime now = DateTime.UtcNow;

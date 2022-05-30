@@ -74,41 +74,31 @@ public class EventsModule : BaseCommandModule
         DateTime eventStart = eventDate.Add(eventTime).ToUniversalTime();
         ScheduledEvent scheduledEvent = new(eventName, eventType, eventStart, eventLength);
 
-        ulong eventId;
-        lock (Cat5BotDB.I.Lock)
-        {
-            eventId = Cat5BotDB.I.Events.Add(scheduledEvent);
-        }
-
-        // TODO add event overlap detection? ask if intentional?
         string scheduledEventText = $"Created \"{scheduledEvent.name}\": {scheduledEvent.Summarize()}";
         if (eventStart < DateTime.UtcNow)
         {
-            scheduledEventText =
-                $"{scheduledEventText}\n" +
-                $"You created this event in the past, was that intentional?";
+            scheduledEventText += $"\nYou created this event in the past, was that intentional?";
+        }
+
+        ulong eventId;
+        lock (Cat5BotDB.I.Lock)
+        {
+            if (Cat5BotDB.I.Events.AnyOverlap(scheduledEvent))
+            {
+                scheduledEventText += $"\nThis event overlaps another event, was that intentional?";
+            }
+
+            eventId = Cat5BotDB.I.Events.Add(scheduledEvent);
         }
 
         var interactivity = ctx.Client.GetInteractivity();
-        var msg = await ctx.RespondAsync(
-            $"{scheduledEventText}\n" +
-            $"Hit the \"X\" to cancel, timeout in {Constants.ScheduledEventCancelTimeout}s"
-        );
-        var x = DiscordEmoji.FromName(ctx.Client, ":x:");
-        await msg.CreateReactionAsync(x);
-        bool cancelled = !(await interactivity.WaitForReactionAsync(xe => xe.Emoji == x && xe.Message == msg, ctx.User, TimeSpan.FromSeconds(Constants.ScheduledEventCancelTimeout))).TimedOut;
-        if (cancelled)
+        bool canceled = await CommandHelper.Cancellable(ctx, interactivity, scheduledEventText, Constants.ScheduledEventCancelTimeout);
+        if (canceled)
         {
             lock (Cat5BotDB.I.Lock)
             {
                 Cat5BotDB.I.Events.TryRemove(eventId, out _);
             }
-            await msg.DeleteAsync();
-        }
-        else
-        {
-            await msg.DeleteOwnReactionAsync(x);
-            await msg.ModifyAsync(scheduledEventText);
         }
     }
 

@@ -25,8 +25,6 @@ public class Log
     }
     #endregion Singleton
 
-    private const int MaxLogSize = 1000;
-
     public bool IsDebug { get; set; } = false;
 
     private readonly static string LogDirPath = Directory.GetCurrentDirectory() + @"\logs\";
@@ -80,7 +78,7 @@ public class Log
 
     private void SaveIfNeeded()
     {
-        if (data.Count >= MaxLogSize)
+        if (data.Count >= Constants.MaxLogSize)
         {
             InternalSave(true);
             data.Clear();

@@ -15,6 +15,8 @@ public class ScheduledEvent : IDBSerializable<ScheduledEvent>, IDBCloneable<Sche
     public DateTime start;
     public TimeSpan duration;
 
+    public DateTime End => start + duration;
+
     public void SetId(ulong id)
     {
         Id = id;

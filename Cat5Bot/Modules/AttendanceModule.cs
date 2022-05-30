@@ -13,10 +13,11 @@ public class AttendanceModule : BaseCommandModule
         ScheduledEvent? scheduledEvent = null;
         lock (Cat5BotDB.I.Lock)
         {
-            scheduledEvent = Cat5BotDB.I.Events.GetClosest();
-            if (scheduledEvent is not null)
+            ScheduledEvent? scheduledEventInternal = Cat5BotDB.I.Events.GetClosest();
+            if (scheduledEventInternal is not null)
             {
-                Cat5BotDB.I.Attendance.Set(ctx.User.Id, scheduledEvent.Id);
+                Cat5BotDB.I.Attendance.Set(ctx.User.Id, scheduledEventInternal.Id);
+                scheduledEvent = scheduledEventInternal.Clone();
             }
         }
 
@@ -29,14 +30,8 @@ public class AttendanceModule : BaseCommandModule
         string attendedEventText = $"Attending \"{scheduledEvent.name}\": {scheduledEvent.Summarize()}";
 
         var interactivity = ctx.Client.GetInteractivity();
-        var msg = await ctx.RespondAsync(
-            $"{attendedEventText}\n" +
-            $"Hit the \"X\" to cancel, timeout in {Constants.AttendingEventCancelTimeout}s"
-        );
-        var x = DiscordEmoji.FromName(ctx.Client, ":x:");
-        await msg.CreateReactionAsync(x);
-        bool cancelled = !(await interactivity.WaitForReactionAsync(xe => xe.Emoji == x && xe.Message == msg, ctx.User, TimeSpan.FromSeconds(Constants.ScheduledEventCancelTimeout))).TimedOut;
-        if (cancelled)
+        bool canceled = await CommandHelper.Cancellable(ctx, interactivity, attendedEventText, Constants.AttendedEventCancelTimeout);
+        if (canceled)
         {
             lock (Cat5BotDB.I.Lock)
             {
@@ -45,12 +40,6 @@ public class AttendanceModule : BaseCommandModule
                     memberAttendance!.TryRemove(scheduledEvent.Id);
                 }
             }
-            await msg.DeleteAsync();
-        }
-        else
-        {
-            await msg.DeleteOwnReactionAsync(x);
-            await msg.ModifyAsync(attendedEventText);
         }
     }
 }
