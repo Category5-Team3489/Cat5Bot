@@ -21,6 +21,15 @@ public class EventsModule : BaseCommandModule
         await ScheduleHelp(ctx);
     }
 
+    [Command("select"), Description("Links your full name to your attendance record.")]
+    public async Task ScheduleSelect(CommandContext ctx)
+    {
+        lock (Cat5BotDB.I.Lock)
+        {
+            Cat5BotDB.I.Events.GetAll();
+        }
+    }
+
     [Command("list"), Description("Links your full name to your attendance record.")]
     public async Task ScheduleList(CommandContext ctx)
     {
