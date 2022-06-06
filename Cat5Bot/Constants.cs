@@ -10,6 +10,8 @@ public static class Constants
 
     public const int AttendedEventCancelTimeout = 60; // seconds
 
+    public const int SchedulingSelectionTimeout = 60; // seconds
+
     public const int MaxLogSize = 1000;
 
     public static class Messages

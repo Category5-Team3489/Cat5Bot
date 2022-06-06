@@ -24,9 +24,68 @@ public class EventsModule : BaseCommandModule
     [Command("select"), Description("Links your full name to your attendance record.")]
     public async Task ScheduleSelect(CommandContext ctx)
     {
+        Log.Command("schedule select", ctx.User.ToString());
+
+        var msg = await ctx.RespondAsync("Test");
+
+        var eBackward = DiscordEmoji.FromName(ctx.Client, ":arrow_backward:");
+        var eForward = DiscordEmoji.FromName(ctx.Client, ":arrow_forward:");
+        var e1 = DiscordEmoji.FromName(ctx.Client, ":one:");
+        var e2 = DiscordEmoji.FromName(ctx.Client, ":two:");
+        var e3 = DiscordEmoji.FromName(ctx.Client, ":three:");
+        var e4 = DiscordEmoji.FromName(ctx.Client, ":four:");
+        var e5 = DiscordEmoji.FromName(ctx.Client, ":five:");
+
+        List<DiscordEmoji> emojis = new() { eBackward, eForward, e1, e2, e3, e4, e5 };
+        await msg.CreateReactionsAsync(300, emojis.ToArray());
+
+        List<ScheduledEvent> scheduledEvents;
         lock (Cat5BotDB.I.Lock)
         {
-            Cat5BotDB.I.Events.GetAll();
+            scheduledEvents = Cat5BotDB.I.Events.GetAll().Select(e => e.Clone()).ToList();
+        }
+
+        var interactivity = ctx.Client.GetInteractivity();
+
+        while (true)
+        {
+            var em = await interactivity.WaitForReactionAsync(xe => emojis.Contains(xe.Emoji) && xe.Message == msg, ctx.User, TimeSpan.FromSeconds(Constants.SchedulingSelectionTimeout));
+            
+            if (em.TimedOut)
+            {
+                break;
+            }
+
+            await msg.DeleteReactionAsync(em.Result.Emoji, ctx.User);
+
+            if (em.Result.Emoji == eBackward)
+            {
+                await msg.ModifyAsync("backward");
+            }
+            else if (em.Result.Emoji == eForward)
+            {
+                await msg.ModifyAsync("forward");
+            }
+            else if (em.Result.Emoji == e1)
+            {
+                await msg.ModifyAsync("1");
+            }
+            else if (em.Result.Emoji == e2)
+            {
+                await msg.ModifyAsync("2");
+            }
+            else if (em.Result.Emoji == e3)
+            {
+                await msg.ModifyAsync("3");
+            }
+            else if (em.Result.Emoji == e4)
+            {
+                await msg.ModifyAsync("4");
+            }
+            else if (em.Result.Emoji == e5)
+            {
+                await msg.ModifyAsync("5");
+            }
         }
     }
 
@@ -42,7 +101,7 @@ public class EventsModule : BaseCommandModule
             int index = 1;
             foreach (ScheduledEvent scheduledEvent in Cat5BotDB.I.Events.GetFuture().Take(10))
             {
-                list.Append($"{index}. \"{scheduledEvent.name}\": {scheduledEvent.CloneAsLocal().Summarize()}\n");
+                list.Append($"\t{index}. \"{scheduledEvent.name}\": {scheduledEvent.CloneAsLocal().Summarize()}\n");
                 index++;
             }
         }
