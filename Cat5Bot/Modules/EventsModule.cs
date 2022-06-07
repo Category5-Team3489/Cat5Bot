@@ -24,68 +24,174 @@ public class EventsModule : BaseCommandModule
     [Command("select"), Description("Links your full name to your attendance record.")]
     public async Task ScheduleSelect(CommandContext ctx)
     {
-        Log.Command("schedule select", ctx.User.ToString());
-
-        var msg = await ctx.RespondAsync("Test");
-
-        var eBackward = DiscordEmoji.FromName(ctx.Client, ":arrow_backward:");
-        var eForward = DiscordEmoji.FromName(ctx.Client, ":arrow_forward:");
-        var e1 = DiscordEmoji.FromName(ctx.Client, ":one:");
-        var e2 = DiscordEmoji.FromName(ctx.Client, ":two:");
-        var e3 = DiscordEmoji.FromName(ctx.Client, ":three:");
-        var e4 = DiscordEmoji.FromName(ctx.Client, ":four:");
-        var e5 = DiscordEmoji.FromName(ctx.Client, ":five:");
-
-        List<DiscordEmoji> emojis = new() { eBackward, eForward, e1, e2, e3, e4, e5 };
-        await msg.CreateReactionsAsync(300, emojis.ToArray());
-
-        List<ScheduledEvent> scheduledEvents;
-        lock (Cat5BotDB.I.Lock)
+        try
         {
-            scheduledEvents = Cat5BotDB.I.Events.GetAll().Select(e => e.Clone()).ToList();
+            Log.Command("schedule select", ctx.User.ToString());
+
+            List<ScheduledEvent> scheduledEvents;
+            lock (Cat5BotDB.I.Lock)
+            {
+                scheduledEvents = Cat5BotDB.I.Events.GetAllOrdered().Select(e => e.Clone()).ToList();
+            }
+
+            int selectedIndex = -1;
+            ScheduledEvent? closest = null;
+            double closestTime = double.MaxValue;
+            for (int i = 0; i < scheduledEvents.Count; i++)
+            {
+                ScheduledEvent scheduledEvent = scheduledEvents[i];
+                double closeness = Math.Abs((DateTime.UtcNow - scheduledEvent.start).TotalSeconds);
+                if (closest == null || closeness < closestTime)
+                {
+                    selectedIndex = i;
+                    closest = scheduledEvent;
+                    closestTime = closeness;
+                }
+            }
+
+            if (closest is null)
+            {
+                // TODO NO CLOSEST
+                return;
+            }
+
+            List<ScheduledEvent> GetNext5(int index)
+            {
+                if (index < 0)
+                {
+                    index = 0;
+                }
+                else if (index >= scheduledEvents.Count)
+                {
+                    index = scheduledEvents.Count - 1;
+                }
+
+                Range next5 = index..(index + 5);
+                if (next5.End.Value > scheduledEvents.Count)
+                {
+                    next5 = new Range(next5.Start, scheduledEvents.Count);
+                }
+
+                return scheduledEvents.Take(next5).ToList();
+            }
+
+            string GetNext5Text(int index)
+            {
+                StringBuilder list = new("");
+
+                int number = 1;
+                List<ScheduledEvent> next5 = GetNext5(index);
+                foreach (ScheduledEvent scheduledEvent in next5)
+                {
+                    list.Append($"\t{number}. \"{scheduledEvent.name}\": {scheduledEvent.CloneAsLocal().Summarize()}\n");
+                    number++;
+                }
+
+                return list.ToString();
+            }
+
+            var msg = await ctx.RespondAsync(GetNext5Text(selectedIndex));
+
+            var eBackward = DiscordEmoji.FromName(ctx.Client, ":arrow_backward:");
+            var eForward = DiscordEmoji.FromName(ctx.Client, ":arrow_forward:");
+            var e1 = DiscordEmoji.FromName(ctx.Client, ":one:");
+            var e2 = DiscordEmoji.FromName(ctx.Client, ":two:");
+            var e3 = DiscordEmoji.FromName(ctx.Client, ":three:");
+            var e4 = DiscordEmoji.FromName(ctx.Client, ":four:");
+            var e5 = DiscordEmoji.FromName(ctx.Client, ":five:");
+
+            List<DiscordEmoji> emojis = new() { eBackward, eForward, e1, e2, e3, e4, e5 };
+            await msg.CreateReactionsAsync(300, emojis.ToArray());
+
+            var interactivity = ctx.Client.GetInteractivity();
+
+            while (true)
+            {
+                var em = await interactivity.WaitForReactionAsync(xe => emojis.Contains(xe.Emoji) && xe.Message == msg, ctx.User, TimeSpan.FromSeconds(Constants.SchedulingSelectionTimeout));
+
+                if (em.TimedOut)
+                {
+                    break;
+                }
+
+                await msg.DeleteReactionAsync(em.Result.Emoji, ctx.User);
+
+                if (em.Result.Emoji == eBackward)
+                {
+                    selectedIndex -= 5;
+                    await msg.ModifyAsync(GetNext5Text(selectedIndex));
+                }
+                else if (em.Result.Emoji == eForward)
+                {
+                    selectedIndex += 5;
+                    await msg.ModifyAsync(GetNext5Text(selectedIndex));
+                }
+                else if (em.Result.Emoji == e1)
+                {
+                    if (selectedIndex >= 0 && selectedIndex < scheduledEvents.Count)
+                    {
+                        ScheduledEvent scheduledEvent = scheduledEvents[selectedIndex];
+                        await msg.ModifyAsync(scheduledEvent.CloneAsLocal().Summarize());
+                    }
+                    else
+                    {
+                        await msg.ModifyAsync("Invalid");
+                    }
+                }
+                else if (em.Result.Emoji == e2)
+                {
+                    if (selectedIndex >= 0 && selectedIndex < scheduledEvents.Count - 1)
+                    {
+                        ScheduledEvent scheduledEvent = scheduledEvents[selectedIndex + 1];
+                        await msg.ModifyAsync(scheduledEvent.CloneAsLocal().Summarize());
+                    }
+                    else
+                    {
+                        await msg.ModifyAsync("Invalid");
+                    }
+                }
+                else if (em.Result.Emoji == e3)
+                {
+                    if (selectedIndex >= 0 && selectedIndex < scheduledEvents.Count - 2)
+                    {
+                        ScheduledEvent scheduledEvent = scheduledEvents[selectedIndex + 2];
+                        await msg.ModifyAsync(scheduledEvent.CloneAsLocal().Summarize());
+                    }
+                    else
+                    {
+                        await msg.ModifyAsync("Invalid");
+                    }
+                }
+                else if (em.Result.Emoji == e4)
+                {
+                    if (selectedIndex >= 0 && selectedIndex < scheduledEvents.Count - 3)
+                    {
+                        ScheduledEvent scheduledEvent = scheduledEvents[selectedIndex + 3];
+                        await msg.ModifyAsync(scheduledEvent.CloneAsLocal().Summarize());
+                    }
+                    else
+                    {
+                        await msg.ModifyAsync("Invalid");
+                    }
+                }
+                else if (em.Result.Emoji == e5)
+                {
+                    if (selectedIndex >= 0 && selectedIndex < scheduledEvents.Count - 4)
+                    {
+                        ScheduledEvent scheduledEvent = scheduledEvents[selectedIndex + 4];
+                        await msg.ModifyAsync(scheduledEvent.CloneAsLocal().Summarize());
+                    }
+                    else
+                    {
+                        await msg.ModifyAsync("Invalid");
+                    }
+                }
+            }
+            await msg.ModifyAsync("Timeout");
         }
-
-        var interactivity = ctx.Client.GetInteractivity();
-
-        while (true)
+        catch (Exception e)
         {
-            var em = await interactivity.WaitForReactionAsync(xe => emojis.Contains(xe.Emoji) && xe.Message == msg, ctx.User, TimeSpan.FromSeconds(Constants.SchedulingSelectionTimeout));
-            
-            if (em.TimedOut)
-            {
-                break;
-            }
-
-            await msg.DeleteReactionAsync(em.Result.Emoji, ctx.User);
-
-            if (em.Result.Emoji == eBackward)
-            {
-                await msg.ModifyAsync("backward");
-            }
-            else if (em.Result.Emoji == eForward)
-            {
-                await msg.ModifyAsync("forward");
-            }
-            else if (em.Result.Emoji == e1)
-            {
-                await msg.ModifyAsync("1");
-            }
-            else if (em.Result.Emoji == e2)
-            {
-                await msg.ModifyAsync("2");
-            }
-            else if (em.Result.Emoji == e3)
-            {
-                await msg.ModifyAsync("3");
-            }
-            else if (em.Result.Emoji == e4)
-            {
-                await msg.ModifyAsync("4");
-            }
-            else if (em.Result.Emoji == e5)
-            {
-                await msg.ModifyAsync("5");
-            }
+            Console.WriteLine(e.ToString());
         }
     }
 

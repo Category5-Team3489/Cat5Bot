@@ -56,7 +56,7 @@ public class EventsDB : IDBSerializable<EventsDB>
             .OrderBy(e => e.start);
     }
 
-    public IEnumerable<ScheduledEvent> GetAll()
+    public IEnumerable<ScheduledEvent> GetAllOrdered()
     {
         return events.Select(e => e.Value)
             .OrderBy(e => e.start);
